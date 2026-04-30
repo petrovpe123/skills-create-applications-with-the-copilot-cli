@@ -6,6 +6,9 @@
  *   - (Subtraction)    – Subtracts the second number from the first
  *   * (Multiplication) – Multiplies two numbers
  *   / (Division)       – Divides the first number by the second (with division-by-zero handling)
+ *   % (Modulo)         – Returns the remainder of dividing the first number by the second
+ *   ^ (Exponentiation) – Raises the first number to the power of the second
+ *   sqrt (Square Root)  – Returns the square root of a number (error on negatives)
  */
 
 function createInterface() {
@@ -43,10 +46,31 @@ function divide(a, b) {
   return a / b;
 }
 
+// Modulo: returns the remainder of a divided by b
+function modulo(a, b) {
+  if (b === 0) {
+    throw new Error("Cannot divide by zero");
+  }
+  return a % b;
+}
+
+// Exponentiation: returns base raised to the exponent
+function power(base, exponent) {
+  return Math.pow(base, exponent);
+}
+
+// Square root: returns the square root of n, with error handling for negatives
+function squareRoot(n) {
+  if (n < 0) {
+    throw new Error("Cannot calculate square root of a negative number");
+  }
+  return Math.sqrt(n);
+}
+
 async function main() {
   const rl = createInterface();
   console.log("=== Node.js CLI Calculator ===");
-  console.log("Supported operations: + (add), - (subtract), * (multiply), / (divide)\n");
+  console.log("Supported operations: + (add), - (subtract), * (multiply), / (divide), % (modulo), ^ (power), sqrt\n");
 
   let running = true;
 
@@ -58,17 +82,20 @@ async function main() {
       continue;
     }
 
-    const operator = (await prompt(rl, "Enter an operator (+, -, *, /): ")).trim();
-    if (!["+", "-", "*", "/"].includes(operator)) {
-      console.log("Invalid operator. Please use +, -, *, or /.\n");
+    const operator = (await prompt(rl, "Enter an operator (+, -, *, /, %, ^, sqrt): ")).trim();
+    if (!["+", "-", "*", "/", "%", "^", "sqrt"].includes(operator)) {
+      console.log("Invalid operator. Please use +, -, *, /, %, ^, or sqrt.\n");
       continue;
     }
 
-    const num2Str = await prompt(rl, "Enter the second number: ");
-    const num2 = parseFloat(num2Str);
-    if (isNaN(num2)) {
-      console.log("Invalid number. Please try again.\n");
-      continue;
+    let num2 = NaN;
+    if (operator !== "sqrt") {
+      const num2Str = await prompt(rl, "Enter the second number: ");
+      num2 = parseFloat(num2Str);
+      if (isNaN(num2)) {
+        console.log("Invalid number. Please try again.\n");
+        continue;
+      }
     }
 
     let result;
@@ -86,8 +113,21 @@ async function main() {
         case "/":
           result = divide(num1, num2);
           break;
+        case "%":
+          result = modulo(num1, num2);
+          break;
+        case "^":
+          result = power(num1, num2);
+          break;
+        case "sqrt":
+          result = squareRoot(num1);
+          break;
       }
-      console.log(`\nResult: ${num1} ${operator} ${num2} = ${result}\n`);
+      if (operator === "sqrt") {
+        console.log(`\nResult: sqrt(${num1}) = ${result}\n`);
+      } else {
+        console.log(`\nResult: ${num1} ${operator} ${num2} = ${result}\n`);
+      }
     } catch (err) {
       console.log(`\nError: ${err.message}\n`);
     }
@@ -108,4 +148,4 @@ if (require.main === module) {
   main();
 }
 
-module.exports = { add, subtract, multiply, divide };
+module.exports = { add, subtract, multiply, divide, modulo, power, squareRoot };
